@@ -1,0 +1,26 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: ['1.88', 'stable']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: rustfmt, clippy
+      - run: cargo fmt --check
+        if: matrix.rust == 'stable'
+      - run: cargo clippy --all-targets -- -D warnings
+        if: matrix.rust == 'stable'
+      - run: cargo test
+      - run: cargo package --allow-dirty
+        if: matrix.rust == 'stable'
